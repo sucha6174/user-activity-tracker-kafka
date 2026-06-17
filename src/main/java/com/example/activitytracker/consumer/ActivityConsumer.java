@@ -5,11 +5,13 @@ import com.example.activitytracker.store.ActivityStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 @Service
 @RequiredArgsConstructor
 public class ActivityConsumer {
-
+    private static final Logger log =
+        LoggerFactory.getLogger(ActivityConsumer.class);
     private final ActivityStore activityStore;
 
     @KafkaListener(
@@ -24,6 +26,6 @@ public class ActivityConsumer {
 
         activityStore.save(event);
 
-        System.out.println("Consumed Event: " + event);
+        log.info("Consumed Event: {}", event);
     }
 }
