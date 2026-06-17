@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Component;
 
 import com.example.activitytracker.dto.ActivityEvent;
@@ -16,7 +16,9 @@ import com.example.activitytracker.dto.ActivityStats;
 public class ActivityStore {
 
     private final Map<String, List<ActivityEvent>> activityMap = new ConcurrentHashMap<>();
+    private final AtomicLong totalEvents = new AtomicLong(0);
 
+    private final Map<String, AtomicLong> actionCounts = new ConcurrentHashMap<>(); 
     public void save(ActivityEvent event) {
         activityMap
                 .computeIfAbsent(
@@ -24,6 +26,11 @@ public class ActivityStore {
                         k -> Collections.synchronizedList(new ArrayList<>())
                 )
                 .add(event);
+                totalEvents.incrementAndGet();
+
+actionCounts
+        .computeIfAbsent(event.getAction(), k -> new AtomicLong(0))
+        .incrementAndGet();
     }
 
     public List<ActivityEvent> getUserActivities(String userId) {
@@ -32,28 +39,17 @@ public class ActivityStore {
 
     public ActivityStats getStats() {
 
-        ActivityStats stats = new ActivityStats();
+    ActivityStats stats = new ActivityStats();
 
-        long totalEvents = activityMap.values()
-                .stream()
-                .mapToLong(List::size)
-                .sum();
+    Map<String, Long> eventsByAction = new HashMap<>();
 
-        Map<String, Long> eventsByAction = new HashMap<>();
+    actionCounts.forEach((action, count) ->
+            eventsByAction.put(action, count.get())
+    );
 
-        activityMap.values().forEach(events -> {
-            events.forEach(event -> {
-                eventsByAction.merge(
-                        event.getAction(),
-                        1L,
-                        Long::sum
-                );
-            });
-        });
+    stats.setTotalEvents(totalEvents.get());
+    stats.setEventsByAction(eventsByAction);
 
-        stats.setTotalEvents(totalEvents);
-        stats.setEventsByAction(eventsByAction);
-
-        return stats;
-    }
+    return stats;
+}
 }
