@@ -32,10 +32,11 @@ public class ActivityController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public ProducerResponse publishEvent(@RequestBody ActivityEvent event) {
 
-        String eventId = UUID.randomUUID().toString();
+       String eventId = UUID.randomUUID().toString();
 
-        activityProducer.sendEvent(event);
+event.setEventId(eventId);
 
+activityProducer.sendEvent(event);
         return new ProducerResponse(
                 "ACCEPTED",
                 eventId
