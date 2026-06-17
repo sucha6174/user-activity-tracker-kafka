@@ -14,10 +14,11 @@ public class ActivityConsumer {
         LoggerFactory.getLogger(ActivityConsumer.class);
     private final ActivityStore activityStore;
 
-    @KafkaListener(
-            topics = "user-activity-events",
-            groupId = "activity-group"
-    )
+   @KafkaListener(
+        topics = "user-activity-events",
+        groupId = "activity-group",
+        containerFactory = "kafkaListenerContainerFactory"
+)
     public void consume(ActivityEvent event) {
 
         if (event.getUserId() == null) {
