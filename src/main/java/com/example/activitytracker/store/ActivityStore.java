@@ -19,7 +19,10 @@ public class ActivityStore {
 
     public void save(ActivityEvent event) {
         activityMap
-                .computeIfAbsent(event.getUserId(), k -> new ArrayList<>())
+                .computeIfAbsent(
+                        event.getUserId(),
+                        k -> Collections.synchronizedList(new ArrayList<>())
+                )
                 .add(event);
     }
 
